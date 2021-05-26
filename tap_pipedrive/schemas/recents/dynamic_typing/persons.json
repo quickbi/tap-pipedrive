@@ -91,7 +91,7 @@
             "type": "boolean"
           },
           "label": {
-            "type": "string"
+            "type": ["null", "string"]
           }
         }
       }
@@ -108,7 +108,7 @@
             "type": "boolean"
           },
           "label": {
-            "type": "string"
+            "type": ["null", "string"]
           }
         }
       }

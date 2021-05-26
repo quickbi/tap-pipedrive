@@ -17,7 +17,8 @@ from .exceptions import (PipedriveError, PipedriveNotFoundError, PipedriveBadReq
 from .streams import (CurrenciesStream, ActivityTypesStream, FiltersStream, StagesStream, PipelinesStream,
                       RecentNotesStream, RecentUsersStream, RecentActivitiesStream, RecentDealsStream,
                       RecentFilesStream, RecentOrganizationsStream, RecentPersonsStream, RecentProductsStream,
-                      RecentDeleteLogsStream, DealStageChangeStream, DealsProductsStream)
+                      RecentDeleteLogsStream, DealStageChangeStream, DealsProductsStream, DealFieldsStream,
+                      PersonFieldsStream, OrganizationFieldsStream)
 
 
 logger = singer.get_logger()
@@ -110,7 +111,10 @@ class PipedriveTap(object):
         RecentProductsStream(),
         # RecentDeleteLogsStream(), ## Remove this properly as part of delete_log remove ticket.
         DealStageChangeStream(),
-        DealsProductsStream()
+        DealsProductsStream(),
+        DealFieldsStream(),
+        OrganizationFieldsStream(),
+        PersonFieldsStream()
     ]
 
     def __init__(self, config, state):
@@ -195,9 +199,7 @@ class PipedriveTap(object):
 
             catalog_stream = catalog.get_stream(stream.schema)
             stream_metadata = metadata.to_map(catalog_stream.metadata)
-
             if stream.id_list: # see if we want to iterate over a list of deal_ids
-
                 for deal_id in stream.get_deal_ids(self):
                     is_last_id = False
 
@@ -251,7 +253,6 @@ class PipedriveTap(object):
 
     def do_paginate(self, stream, stream_metadata):
         while stream.has_data():
-
             with singer.metrics.http_request_timer(stream.schema) as timer:
                 try:
                     response = self.execute_stream_request(stream)
@@ -306,7 +307,6 @@ class PipedriveTap(object):
         url = "{}/{}".format(BASE_URL, endpoint)
         logger.debug('Firing request at {} with params: {}'.format(url, _params))
         response = requests.get(url, headers=headers, params=_params)
-
         if response.status_code == 200 and isinstance(response, requests.Response) :
             try:
                 # Verifying json is valid or not
